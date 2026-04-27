@@ -1,0 +1,66 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  OFFICER
+}
+
+enum PaymentStatus {
+  UNPAID
+  PAID
+}
+
+model User {
+  id         String      @id @default(uuid())
+  name       String
+  email      String      @unique
+  password   String
+  role       Role        @default(OFFICER)
+  phone      String?
+  violations Violation[]
+  createdAt  DateTime    @default(now())
+}
+
+model ViolationType {
+  id          String      @id @default(uuid())
+  name        String      @unique
+  fine        Float
+  description String?
+  violations  Violation[]
+  createdAt   DateTime    @default(now())
+}
+
+model Vehicle {
+  id           String      @id @default(uuid())
+  plateNumber  String      @unique
+  ownerName    String
+  ownerPhone   String?
+  ownerNational String?
+  brand        String?
+  color        String?
+  violations   Violation[]
+  createdAt    DateTime    @default(now())
+}
+
+model Violation {
+  id              String        @id @default(uuid())
+  vehicle         Vehicle       @relation(fields: [vehicleId], references: [id])
+  vehicleId       String
+  violationType   ViolationType @relation(fields: [violationTypeId], references: [id])
+  violationTypeId String
+  officer         User          @relation(fields: [officerId], references: [id])
+  officerId       String
+  location        String?
+  notes           String?
+  fine            Float
+  paymentStatus   PaymentStatus @default(UNPAID)
+  paidAt          DateTime?
+  createdAt       DateTime      @default(now())
+}
